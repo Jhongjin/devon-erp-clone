@@ -1,0 +1,12 @@
+{
+    "mcpServers": {
+      "supabase": {
+        "type": "http",
+        "url": "https://mcp.supabase.com/mcp?project_ref=여기에_프로젝트_REF"
+      },
+      "vercel": {
+        "type": "http",
+        "url": "https://mcp.vercel.com/팀슬러그/프로젝트슬러그"
+      }
+    }
+  }
