@@ -13,9 +13,11 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">대시보드</h1>
-          <p className="text-sm text-muted-foreground">전사 KPI 및 최근 현황을 한눈에 확인하세요.</p>
+          <p className="text-sm text-muted-foreground">프로젝트, 조직, 근태 현황을 한눈에 확인하세요.</p>
         </div>
-        <Badge variant="secondary">Demo</Badge>
+        <Badge variant="outline" className="rounded-full px-3 py-1 text-xs">
+          실시간 데모 데이터
+        </Badge>
       </div>
 
       <DashboardKPIs />

@@ -140,12 +140,45 @@ export function ProjectsPageClient() {
 
   return (
     <div className="space-y-6">
+      <div className="grid gap-4 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-muted-foreground">전체 프로젝트</CardTitle>
+          </CardHeader>
+          <CardContent className="text-2xl font-semibold">{rows.length}건</CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-muted-foreground">진행중</CardTitle>
+          </CardHeader>
+          <CardContent className="text-2xl font-semibold">
+            {rows.filter((r) => r.status === "진행중").length}건
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-muted-foreground">완료</CardTitle>
+          </CardHeader>
+          <CardContent className="text-2xl font-semibold">
+            {rows.filter((r) => r.status === "완료").length}건
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-muted-foreground">보류</CardTitle>
+          </CardHeader>
+          <CardContent className="text-2xl font-semibold">
+            {rows.filter((r) => r.status === "보류").length}건
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">프로젝트 관리</h1>
-          <p className="text-sm text-muted-foreground">프로젝트 상태와 예산, 담당자를 관리합니다.</p>
+          <h1 className="text-2xl font-semibold tracking-tight">프로젝트</h1>
+          <p className="text-sm text-muted-foreground">프로젝트 진행 상황과 담당자를 한눈에 확인하세요.</p>
         </div>
-        <Button onClick={openCreate}>프로젝트 추가</Button>
+        <Button onClick={openCreate}>프로젝트 생성</Button>
       </div>
 
       <Card>
