@@ -1,11 +1,12 @@
 "use client"
 
 import * as React from "react"
+import { toast } from "sonner"
 
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -47,6 +48,9 @@ export function EmployeesPageClient() {
     hire_date: "",
     salary: "",
   })
+
+  // 삭제 확인 다이얼로그
+  const [deleteTarget, setDeleteTarget] = React.useState<Employee | null>(null)
 
   const refresh = React.useCallback(async () => {
     setLoading(true)
@@ -113,25 +117,48 @@ export function EmployeesPageClient() {
     }
 
     if (editing) {
-      await supabase.from("employees").update(payload).eq("id", editing.id)
+      const { error } = await supabase.from("employees").update(payload).eq("id", editing.id)
+      if (error) {
+        toast.error("수정 실패", { description: error.message })
+        return
+      }
+      toast.success("직원 정보가 수정되었습니다.")
     } else {
-      await supabase.from("employees").insert(payload)
+      const { error } = await supabase.from("employees").insert(payload)
+      if (error) {
+        toast.error("추가 실패", { description: error.message })
+        return
+      }
+      toast.success("새 직원이 추가되었습니다.")
     }
     setOpen(false)
     await refresh()
   }
 
-  async function onDelete(id: string) {
-    await supabase.from("employees").delete().eq("id", id)
+  async function onDelete() {
+    if (!deleteTarget) return
+    const { error } = await supabase.from("employees").delete().eq("id", deleteTarget.id)
+    if (error) {
+      toast.error("삭제 실패", { description: error.message })
+    } else {
+      toast.success(`"${deleteTarget.name}" 직원이 삭제되었습니다.`)
+    }
+    setDeleteTarget(null)
     await refresh()
+  }
+
+  function statusBadgeVariant(s: string) {
+    if (s === "재직") return "default" as const
+    if (s === "휴직") return "secondary" as const
+    return "outline" as const
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">직원 관리</h1>
-          <p className="text-sm text-muted-foreground">직원 정보를 검색/필터링하고 CRUD를 수행합니다.</p>
+          <h1 className="text-2xl font-bold tracking-tight">직원 관리</h1>
+          <p className="text-sm text-muted-foreground">직원 정보를 검색/필터링하고 관리합니다.</p>
         </div>
         <Button onClick={openCreate}>직원 추가</Button>
       </div>
@@ -171,20 +198,28 @@ export function EmployeesPageClient() {
               </TableHeader>
               <TableBody>
                 {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
-                      불러오는 중…
-                    </TableCell>
-                  </TableRow>
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      {Array.from({ length: 6 }).map((_, j) => (
+                        <TableCell key={j}>
+                          <div className="h-4 w-full animate-pulse rounded bg-muted" />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
                 ) : filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
-                      결과가 없습니다.
+                    <TableCell colSpan={6} className="py-16 text-center">
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="text-4xl">📋</div>
+                        <p className="text-sm font-medium text-muted-foreground">결과가 없습니다.</p>
+                        <p className="text-xs text-muted-foreground">검색 조건을 변경하거나 새 직원을 추가하세요.</p>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : (
                   filtered.map((r) => (
-                    <TableRow key={r.id}>
+                    <TableRow key={r.id} className="transition-colors hover:bg-muted/50">
                       <TableCell className="font-medium">{r.name}</TableCell>
                       <TableCell className="text-muted-foreground">{r.email}</TableCell>
                       <TableCell className="text-muted-foreground">
@@ -192,7 +227,7 @@ export function EmployeesPageClient() {
                       </TableCell>
                       <TableCell className="text-muted-foreground">{r.position ?? "-"}</TableCell>
                       <TableCell>
-                        <Badge variant={r.status === "재직" ? "default" : r.status === "휴직" ? "secondary" : "outline"}>
+                        <Badge variant={statusBadgeVariant(r.status)}>
                           {r.status}
                         </Badge>
                       </TableCell>
@@ -201,7 +236,7 @@ export function EmployeesPageClient() {
                           <Button variant="outline" size="sm" onClick={() => openEdit(r)}>
                             수정
                           </Button>
-                          <Button variant="destructive" size="sm" onClick={() => onDelete(r.id)}>
+                          <Button variant="destructive" size="sm" onClick={() => setDeleteTarget(r)}>
                             삭제
                           </Button>
                         </div>
@@ -215,11 +250,15 @@ export function EmployeesPageClient() {
         </CardContent>
       </Card>
 
+      {/* 생성/수정 다이얼로그 */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger className="hidden" />
         <DialogContent className="sm:max-w-[520px]">
           <DialogHeader>
             <DialogTitle>{editing ? "직원 수정" : "직원 추가"}</DialogTitle>
+            <DialogDescription>
+              {editing ? "직원 정보를 수정합니다." : "새 직원 정보를 입력합니다."}
+            </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-2">
@@ -318,7 +357,27 @@ export function EmployeesPageClient() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* 삭제 확인 다이얼로그 */}
+      <Dialog open={!!deleteTarget} onOpenChange={(v) => !v && setDeleteTarget(null)}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>직원 삭제</DialogTitle>
+            <DialogDescription>
+              &ldquo;{deleteTarget?.name}&rdquo; 직원을 정말 삭제하시겠습니까?
+              <br />이 작업은 되돌릴 수 없습니다.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)}>
+              취소
+            </Button>
+            <Button variant="destructive" onClick={onDelete}>
+              삭제
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
-

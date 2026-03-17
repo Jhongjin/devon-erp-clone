@@ -1,12 +1,13 @@
 "use client"
 
 import * as React from "react"
+import { toast } from "sonner"
 
 import { createClient } from "@/lib/supabase/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -51,6 +52,8 @@ export function ProjectsPageClient() {
     department_id: "none",
     manager_id: "none",
   })
+
+  const [deleteTarget, setDeleteTarget] = React.useState<Project | null>(null)
 
   const refresh = React.useCallback(async () => {
     setLoading(true)
@@ -118,16 +121,33 @@ export function ProjectsPageClient() {
       manager_id: form.manager_id === "none" ? null : form.manager_id,
     }
     if (editing) {
-      await supabase.from("projects").update(payload).eq("id", editing.id)
+      const { error } = await supabase.from("projects").update(payload).eq("id", editing.id)
+      if (error) {
+        toast.error("수정 실패", { description: error.message })
+        return
+      }
+      toast.success("프로젝트가 수정되었습니다.")
     } else {
-      await supabase.from("projects").insert(payload)
+      const { error } = await supabase.from("projects").insert(payload)
+      if (error) {
+        toast.error("추가 실패", { description: error.message })
+        return
+      }
+      toast.success("새 프로젝트가 추가되었습니다.")
     }
     setOpen(false)
     await refresh()
   }
 
-  async function onDelete(id: string) {
-    await supabase.from("projects").delete().eq("id", id)
+  async function onDelete() {
+    if (!deleteTarget) return
+    const { error } = await supabase.from("projects").delete().eq("id", deleteTarget.id)
+    if (error) {
+      toast.error("삭제 실패", { description: error.message })
+    } else {
+      toast.success(`"${deleteTarget.name}" 프로젝트가 삭제되었습니다.`)
+    }
+    setDeleteTarget(null)
     await refresh()
   }
 
@@ -138,44 +158,36 @@ export function ProjectsPageClient() {
     return "destructive" as const
   }
 
+  const statusCounts = {
+    total: rows.length,
+    active: rows.filter((r) => r.status === "진행중").length,
+    done: rows.filter((r) => r.status === "완료").length,
+    hold: rows.filter((r) => r.status === "보류").length,
+  }
+
+  const statCards = [
+    { title: "전체 프로젝트", value: `${statusCounts.total}건`, color: "oklch(0.588 0.180 264)" },
+    { title: "진행중", value: `${statusCounts.active}건`, color: "oklch(0.650 0.200 160)" },
+    { title: "완료", value: `${statusCounts.done}건`, color: "oklch(0.700 0.175 45)" },
+    { title: "보류", value: `${statusCounts.hold}건`, color: "oklch(0.600 0.210 310)" },
+  ]
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">전체 프로젝트</CardTitle>
-          </CardHeader>
-          <CardContent className="text-2xl font-semibold">{rows.length}건</CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">진행중</CardTitle>
-          </CardHeader>
-          <CardContent className="text-2xl font-semibold">
-            {rows.filter((r) => r.status === "진행중").length}건
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">완료</CardTitle>
-          </CardHeader>
-          <CardContent className="text-2xl font-semibold">
-            {rows.filter((r) => r.status === "완료").length}건
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">보류</CardTitle>
-          </CardHeader>
-          <CardContent className="text-2xl font-semibold">
-            {rows.filter((r) => r.status === "보류").length}건
-          </CardContent>
-        </Card>
+        {statCards.map((c) => (
+          <Card key={c.title} className="card-hover kpi-accent-bar" style={{ "--kpi-color": c.color } as React.CSSProperties}>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-muted-foreground">{c.title}</CardTitle>
+            </CardHeader>
+            <CardContent className="text-2xl font-bold">{c.value}</CardContent>
+          </Card>
+        ))}
       </div>
 
       <div className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">프로젝트</h1>
+          <h1 className="text-2xl font-bold tracking-tight">프로젝트</h1>
           <p className="text-sm text-muted-foreground">프로젝트 진행 상황과 담당자를 한눈에 확인하세요.</p>
         </div>
         <Button onClick={openCreate}>프로젝트 생성</Button>
@@ -220,20 +232,28 @@ export function ProjectsPageClient() {
               </TableHeader>
               <TableBody>
                 {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
-                      불러오는 중…
-                    </TableCell>
-                  </TableRow>
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      {Array.from({ length: 6 }).map((_, j) => (
+                        <TableCell key={j}>
+                          <div className="h-4 w-full animate-pulse rounded bg-muted" />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
                 ) : filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
-                      결과가 없습니다.
+                    <TableCell colSpan={6} className="py-16 text-center">
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="text-4xl">📁</div>
+                        <p className="text-sm font-medium text-muted-foreground">결과가 없습니다.</p>
+                        <p className="text-xs text-muted-foreground">검색 조건을 변경하거나 새 프로젝트를 추가하세요.</p>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : (
                   filtered.map((p) => (
-                    <TableRow key={p.id}>
+                    <TableRow key={p.id} className="transition-colors hover:bg-muted/50">
                       <TableCell className="max-w-[260px]">
                         <div className="font-medium">{p.name}</div>
                         {p.description && (
@@ -257,7 +277,7 @@ export function ProjectsPageClient() {
                           <Button variant="outline" size="sm" onClick={() => openEdit(p)}>
                             수정
                           </Button>
-                          <Button variant="destructive" size="sm" onClick={() => onDelete(p.id)}>
+                          <Button variant="destructive" size="sm" onClick={() => setDeleteTarget(p)}>
                             삭제
                           </Button>
                         </div>
@@ -271,10 +291,14 @@ export function ProjectsPageClient() {
         </CardContent>
       </Card>
 
+      {/* 수정/추가 다이얼로그 */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[620px]">
           <DialogHeader>
             <DialogTitle>{editing ? "프로젝트 수정" : "프로젝트 추가"}</DialogTitle>
+            <DialogDescription>
+              {editing ? "프로젝트 정보를 수정합니다." : "새 프로젝트를 등록합니다."}
+            </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-2">
             <div className="grid gap-2">
@@ -375,7 +399,27 @@ export function ProjectsPageClient() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* 삭제 확인 다이얼로그 */}
+      <Dialog open={!!deleteTarget} onOpenChange={(v) => !v && setDeleteTarget(null)}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>프로젝트 삭제</DialogTitle>
+            <DialogDescription>
+              &ldquo;{deleteTarget?.name}&rdquo; 프로젝트를 정말 삭제하시겠습니까?
+              <br />이 작업은 되돌릴 수 없습니다.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)}>
+              취소
+            </Button>
+            <Button variant="destructive" onClick={onDelete}>
+              삭제
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
-
