@@ -15,10 +15,8 @@ export function MobileSidebar() {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <button type="button" className="inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground md:hidden" aria-label="메뉴 열기">
-          <Menu className="h-5 w-5" />
-        </button>
+      <SheetTrigger className="inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground md:hidden" aria-label="메뉴 열기">
+        <Menu className="h-5 w-5" />
       </SheetTrigger>
       <SheetContent side="left" className="w-[300px] p-0">
         <SheetHeader className="border-b p-4">
