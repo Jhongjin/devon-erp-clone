@@ -3,14 +3,35 @@
 import * as React from "react"
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
 
-const data = [
-  { name: "계획", value: 2, color: "hsl(var(--chart-1))" },
-  { name: "진행중", value: 6, color: "hsl(var(--chart-2))" },
-  { name: "보류", value: 1, color: "hsl(var(--chart-4))" },
-  { name: "완료", value: 3, color: "hsl(var(--chart-3))" },
-]
+import { createClient } from "@/lib/supabase/client"
+
+const colors = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-4))", "hsl(var(--chart-3))"]
+const statusOrder = ["계획", "진행중", "보류", "완료"]
 
 export function ProjectStatusPie() {
+  const [data, setData] = React.useState<{ name: string; value: number; color: string }[]>([])
+
+  React.useEffect(() => {
+    const supabase = createClient()
+    supabase
+      .from("projects")
+      .select("status")
+      .then(({ data: rows }) => {
+        const counts: Record<string, number> = { 계획: 0, 진행중: 0, 보류: 0, 완료: 0 }
+        ;(rows ?? []).forEach((r: { status?: string }) => {
+          const s = r.status ?? "진행중"
+          counts[s] = (counts[s] ?? 0) + 1
+        })
+        setData(
+          statusOrder.map((name, i) => ({
+            name,
+            value: counts[name] ?? 0,
+            color: colors[i] ?? colors[0],
+          }))
+        )
+      })
+  }, [])
+
   return (
     <div className="flex h-full flex-col gap-4">
       <div className="h-[220px]">

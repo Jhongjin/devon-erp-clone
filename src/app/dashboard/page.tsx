@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
+import { DashboardKPIs } from "@/components/dashboard/dashboard-kpis"
 import { MonthlyRevenueChart } from "@/components/dashboard/widgets/monthly-revenue-chart"
 import { ProjectStatusPie } from "@/components/dashboard/widgets/project-status-pie"
 import { RecentTasks } from "@/components/dashboard/widgets/recent-tasks"
@@ -17,32 +18,7 @@ export default function DashboardPage() {
         <Badge variant="secondary">Demo</Badge>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">총 직원수</CardTitle>
-          </CardHeader>
-          <CardContent className="text-2xl font-semibold">15명</CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">진행중 프로젝트</CardTitle>
-          </CardHeader>
-          <CardContent className="text-2xl font-semibold">6건</CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">이번달 매출</CardTitle>
-          </CardHeader>
-          <CardContent className="text-2xl font-semibold">₩ 4,350,000</CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">신규 거래처</CardTitle>
-          </CardHeader>
-          <CardContent className="text-2xl font-semibold">3곳</CardContent>
-        </Card>
-      </div>
+      <DashboardKPIs />
 
       <div className="grid gap-4 lg:grid-cols-7">
         <Card className="lg:col-span-4">

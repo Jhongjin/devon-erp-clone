@@ -4,16 +4,11 @@ import * as React from "react"
 import { format } from "date-fns"
 import { ko } from "date-fns/locale"
 
+import { createClient } from "@/lib/supabase/client"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
-const rows = [
-  { title: "대시보드 KPI 설계", status: "진행중", priority: "높음", due: new Date("2025-03-25") },
-  { title: "알림 UI", status: "진행중", priority: "중간", due: new Date("2025-04-05") },
-  { title: "근태 테이블 설계", status: "진행중", priority: "중간", due: new Date("2025-03-27") },
-  { title: "직원 테이블 UI", status: "할일", priority: "중간", due: new Date("2025-03-28") },
-  { title: "프로젝트 상세 페이지", status: "할일", priority: "높음", due: new Date("2025-04-12") },
-]
+type TaskRow = { id: string; title: string; status: string; priority: string; due_date: string | null }
 
 function priorityVariant(p: string) {
   if (p === "높음") return "destructive" as const
@@ -22,6 +17,18 @@ function priorityVariant(p: string) {
 }
 
 export function RecentTasks() {
+  const [rows, setRows] = React.useState<TaskRow[]>([])
+
+  React.useEffect(() => {
+    const supabase = createClient()
+    supabase
+      .from("tasks")
+      .select("id,title,status,priority,due_date")
+      .order("created_at", { ascending: false })
+      .limit(5)
+      .then(({ data }) => setRows((data as TaskRow[]) ?? []))
+  }, [])
+
   return (
     <Table>
       <TableHeader>
@@ -33,20 +40,28 @@ export function RecentTasks() {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {rows.map((r) => (
-          <TableRow key={r.title}>
-            <TableCell className="font-medium">{r.title}</TableCell>
-            <TableCell>
-              <Badge variant="outline">{r.status}</Badge>
-            </TableCell>
-            <TableCell>
-              <Badge variant={priorityVariant(r.priority)}>{r.priority}</Badge>
-            </TableCell>
-            <TableCell className="text-right text-muted-foreground">
-              {format(r.due, "M/d(EEE)", { locale: ko })}
+        {rows.length === 0 ? (
+          <TableRow>
+            <TableCell colSpan={4} className="py-6 text-center text-muted-foreground">
+              최근 업무가 없습니다.
             </TableCell>
           </TableRow>
-        ))}
+        ) : (
+          rows.map((r) => (
+            <TableRow key={r.id}>
+              <TableCell className="font-medium">{r.title}</TableCell>
+              <TableCell>
+                <Badge variant="outline">{r.status}</Badge>
+              </TableCell>
+              <TableCell>
+                <Badge variant={priorityVariant(r.priority)}>{r.priority}</Badge>
+              </TableCell>
+              <TableCell className="text-right text-muted-foreground">
+                {r.due_date ? format(new Date(r.due_date), "M/d(EEE)", { locale: ko }) : "-"}
+              </TableCell>
+            </TableRow>
+          ))
+        )}
       </TableBody>
     </Table>
   )

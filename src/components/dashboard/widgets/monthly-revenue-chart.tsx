@@ -3,19 +3,53 @@
 import * as React from "react"
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 
-const data = [
-  { month: "1월", revenue: 2050000 },
-  { month: "2월", revenue: 4050000 },
-  { month: "3월", revenue: 3150000 },
-  { month: "4월", revenue: 3550000 },
-  { month: "5월", revenue: 4850000 },
-  { month: "6월", revenue: 4350000 },
-]
+import { createClient } from "@/lib/supabase/client"
+
+const monthLabels = ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"]
 
 export function MonthlyRevenueChart() {
+  const [data, setData] = React.useState<{ month: string; revenue: number }[]>([])
+
+  React.useEffect(() => {
+    const supabase = createClient()
+    const now = new Date()
+    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1).toISOString().slice(0, 10)
+
+    supabase
+      .from("invoices")
+      .select("amount,issue_date")
+      .gte("issue_date", sixMonthsAgo)
+      .in("status", ["발행", "미수", "완료"])
+      .then(({ data: rows }) => {
+        const byMonth: Record<string, number> = {}
+        for (let i = 0; i < 6; i++) {
+          const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1)
+          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
+          byMonth[key] = 0
+        }
+        ;(rows ?? []).forEach((r: { amount?: number; issue_date?: string }) => {
+          if (r.issue_date) {
+            const key = r.issue_date.slice(0, 7)
+            if (byMonth[key] !== undefined) byMonth[key] += r.amount ?? 0
+          }
+        })
+        const sorted = Object.entries(byMonth)
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([k, v]) => {
+            const [y, m] = k.split("-")
+            const monthIdx = parseInt(m, 10) - 1
+            return {
+              month: monthLabels[monthIdx] ?? `${m}월`,
+              revenue: v,
+            }
+          })
+        setData(sorted)
+      })
+  }, [])
+
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={data} margin={{ left: 8, right: 8 }}>
+      <BarChart data={data.length ? data : [{ month: "-", revenue: 0 }]} margin={{ left: 8, right: 8 }}>
         <CartesianGrid strokeDasharray="3 3" vertical={false} />
         <XAxis dataKey="month" tickLine={false} axisLine={false} />
         <YAxis
