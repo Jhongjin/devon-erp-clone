@@ -206,7 +206,7 @@ export function TasksPageClient() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="grid gap-2">
                 <Label>상태</Label>
-                <Select value={form.status} onValueChange={(v) => setForm((f) => ({ ...f, status: v }))}>
+                <Select value={form.status} onValueChange={(v) => setForm((f) => ({ ...f, status: v ?? "할일" }))}>
                   <SelectTrigger>
                     <SelectValue placeholder="선택" />
                   </SelectTrigger>
@@ -221,7 +221,7 @@ export function TasksPageClient() {
               </div>
               <div className="grid gap-2">
                 <Label>우선순위</Label>
-                <Select value={form.priority} onValueChange={(v) => setForm((f) => ({ ...f, priority: v }))}>
+                <Select value={form.priority} onValueChange={(v) => setForm((f) => ({ ...f, priority: v ?? "중간" }))}>
                   <SelectTrigger>
                     <SelectValue placeholder="선택" />
                   </SelectTrigger>
@@ -248,7 +248,7 @@ export function TasksPageClient() {
                 <Label>프로젝트</Label>
                 <Select
                   value={form.project_id}
-                  onValueChange={(v) => setForm((f) => ({ ...f, project_id: v }))}
+                  onValueChange={(v) => setForm((f) => ({ ...f, project_id: v ?? "none" }))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="선택" />
@@ -267,7 +267,7 @@ export function TasksPageClient() {
                 <Label>담당자</Label>
                 <Select
                   value={form.assignee_id}
-                  onValueChange={(v) => setForm((f) => ({ ...f, assignee_id: v }))}
+                  onValueChange={(v) => setForm((f) => ({ ...f, assignee_id: v ?? "none" }))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="선택" />

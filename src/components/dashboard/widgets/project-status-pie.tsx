@@ -37,7 +37,7 @@ export function ProjectStatusPie() {
       <div className="h-[220px]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <Tooltip formatter={(v: number | string) => [v, "건수"]} />
+            <Tooltip formatter={(v) => [v ?? 0, "건수"]} />
             <Pie data={data} dataKey="value" nameKey="name" innerRadius={55} outerRadius={85} paddingAngle={2}>
               {data.map((d) => (
                 <Cell key={d.name} fill={d.color} />

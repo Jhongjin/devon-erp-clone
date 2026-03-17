@@ -157,7 +157,7 @@ export function ProjectsPageClient() {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="프로젝트명 / 설명 검색"
             />
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v ?? "all")}>
               <SelectTrigger className="w-full md:w-[200px]">
                 <SelectValue placeholder="상태 필터" />
               </SelectTrigger>
@@ -258,7 +258,7 @@ export function ProjectsPageClient() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="grid gap-2">
                 <Label>상태</Label>
-                <Select value={form.status} onValueChange={(v) => setForm((f) => ({ ...f, status: v }))}>
+                <Select value={form.status} onValueChange={(v) => setForm((f) => ({ ...f, status: v ?? "진행중" }))}>
                   <SelectTrigger>
                     <SelectValue placeholder="선택" />
                   </SelectTrigger>
@@ -275,7 +275,7 @@ export function ProjectsPageClient() {
                 <Label>부서</Label>
                 <Select
                   value={form.department_id}
-                  onValueChange={(v) => setForm((f) => ({ ...f, department_id: v }))}
+                  onValueChange={(v) => setForm((f) => ({ ...f, department_id: v ?? "none" }))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="선택" />
@@ -292,7 +292,7 @@ export function ProjectsPageClient() {
               </div>
               <div className="grid gap-2">
                 <Label>담당자</Label>
-                <Select value={form.manager_id} onValueChange={(v) => setForm((f) => ({ ...f, manager_id: v }))}>
+                <Select value={form.manager_id} onValueChange={(v) => setForm((f) => ({ ...f, manager_id: v ?? "none" }))}>
                   <SelectTrigger>
                     <SelectValue placeholder="선택" />
                   </SelectTrigger>

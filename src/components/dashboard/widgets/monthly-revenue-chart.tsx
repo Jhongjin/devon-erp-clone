@@ -60,9 +60,10 @@ export function MonthlyRevenueChart() {
         />
         <Tooltip
           cursor={{ fill: "hsl(var(--muted) / 0.6)" }}
-          formatter={(value: number | string) =>
-            typeof value === "number" ? [`₩ ${value.toLocaleString("ko-KR")}`, "매출"] : [value, "매출"]
-          }
+          formatter={(value) => {
+            const n = typeof value === "number" ? value : Number(value) || 0
+            return [`₩ ${n.toLocaleString("ko-KR")}`, "매출"]
+          }}
         />
         <Bar dataKey="revenue" radius={[6, 6, 0, 0]} fill="hsl(var(--chart-2))" />
       </BarChart>

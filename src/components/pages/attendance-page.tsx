@@ -80,7 +80,7 @@ export function AttendancePageClient() {
             </div>
             <div className="grid gap-1">
               <Label>직원</Label>
-              <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
+              <Select value={employeeFilter} onValueChange={(v) => setEmployeeFilter(v ?? "all")}>
                 <SelectTrigger>
                   <SelectValue placeholder="전체" />
                 </SelectTrigger>

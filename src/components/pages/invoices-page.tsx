@@ -144,7 +144,7 @@ export function InvoicesPageClient() {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="청구서 번호 검색"
             />
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v ?? "all")}>
               <SelectTrigger className="w-full md:w-[200px]">
                 <SelectValue placeholder="상태 필터" />
               </SelectTrigger>
@@ -233,7 +233,7 @@ export function InvoicesPageClient() {
             </div>
             <div className="grid gap-2">
               <Label>거래처</Label>
-              <Select value={form.client_id} onValueChange={(v) => setForm((f) => ({ ...f, client_id: v }))}>
+              <Select value={form.client_id} onValueChange={(v) => setForm((f) => ({ ...f, client_id: v ?? "none" }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="선택" />
                 </SelectTrigger>
@@ -257,7 +257,7 @@ export function InvoicesPageClient() {
             </div>
             <div className="grid gap-2">
               <Label>상태</Label>
-              <Select value={form.status} onValueChange={(v) => setForm((f) => ({ ...f, status: v }))}>
+              <Select value={form.status} onValueChange={(v) => setForm((f) => ({ ...f, status: v ?? "발행" }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="선택" />
                 </SelectTrigger>

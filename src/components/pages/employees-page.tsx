@@ -141,7 +141,7 @@ export function EmployeesPageClient() {
           <CardTitle>직원 목록</CardTitle>
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="이름/이메일/직책 검색" />
-            <Select value={deptFilter} onValueChange={setDeptFilter}>
+            <Select value={deptFilter} onValueChange={(v) => setDeptFilter(v ?? "all")}>
               <SelectTrigger className="w-full md:w-[240px]">
                 <SelectValue placeholder="부서 필터" />
               </SelectTrigger>
@@ -216,9 +216,7 @@ export function EmployeesPageClient() {
       </Card>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <span className="hidden" />
-        </DialogTrigger>
+        <DialogTrigger className="hidden" />
         <DialogContent className="sm:max-w-[520px]">
           <DialogHeader>
             <DialogTitle>{editing ? "직원 수정" : "직원 추가"}</DialogTitle>
@@ -250,7 +248,7 @@ export function EmployeesPageClient() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="grid gap-2">
                 <Label>부서</Label>
-                <Select value={form.department_id} onValueChange={(v) => setForm((f) => ({ ...f, department_id: v }))}>
+                <Select value={form.department_id} onValueChange={(v) => setForm((f) => ({ ...f, department_id: v ?? "none" }))}>
                   <SelectTrigger>
                     <SelectValue placeholder="선택" />
                   </SelectTrigger>
@@ -266,7 +264,7 @@ export function EmployeesPageClient() {
               </div>
               <div className="grid gap-2">
                 <Label>상태</Label>
-                <Select value={form.status} onValueChange={(v) => setForm((f) => ({ ...f, status: v }))}>
+                <Select value={form.status} onValueChange={(v) => setForm((f) => ({ ...f, status: v ?? "재직" }))}>
                   <SelectTrigger>
                     <SelectValue placeholder="선택" />
                   </SelectTrigger>
